@@ -13,7 +13,7 @@ cfg_master='master'
 # default origin name
 origin_name=''
 # silly regex to see if user field has email address
-user_re=re.compile('([^<]+) (<[^>]*>)$')
+user_re=re.compile('([^<]+) (<[^<>]*>)$')
 # silly regex to clean out user names
 user_clean_re=re.compile('^["]([^"]+)["]$')
 
@@ -45,7 +45,15 @@ def fixup_user(user,authors):
     # and mail from hg helpers. this seems to work pretty well.
     # if email doesn't contain @, replace it with devnull@localhost
     name=templatefilters.person(user)
-    mail='<%s>' % util.email(user)
+    mail = util.email(user)
+
+    # fixup '<' in email address.
+    # at this point assume it's safe to use what's left
+    if '<' in mail:
+      r = mail.find('<')
+      mail = mail[r + 1 : len(mail)]
+
+    mail = '<%s>' % mail
     if '@' not in mail:
       mail = '<devnull@localhost>'
   else:
